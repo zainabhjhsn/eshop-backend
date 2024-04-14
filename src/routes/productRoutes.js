@@ -5,21 +5,32 @@ import {
   getProductById,
   getProducts,
   updateProduct,
+  deleteAllProducts,
 } from "../controllers/productController.js";
-import { protect } from "../middlewares/authMiddleware.js";
 import { adminProtect } from "../middlewares/adminAuth.js";
-import { userProtect } from "../middlewares/userAuth.js";
+import multer from "multer";
 
+const storage = multer.diskStorage({
+  destination: "src/uploads/products",
+  filename: function (req, file, cb) {
+    cb(null, new Date().getTime() + file.originalname); //because of same name issue we are adding date
+  },
+});
+const upload = multer({ storage: storage });
 const router = express.Router();
 
 router
   .route("/:id")
-  .get(protect, userProtect, getProductById)
-  .put(protect, adminProtect, updateProduct)
-  .delete(protect, adminProtect, deleteProduct);
+  .get(getProductById)
+  .put(adminProtect, updateProduct)
+  .delete(adminProtect, deleteProduct);
 router
   .route("/")
-  .get(protect, userProtect, getProducts)
-  .post(protect, adminProtect, createProduct);
+  .get(getProducts)
+  .post(adminProtect, upload.single("image"), createProduct);
+router
+.route("/delete/all")
+.delete(adminProtect, deleteAllProducts);
+
 
 export default router;
