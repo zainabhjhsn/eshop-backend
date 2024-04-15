@@ -3,9 +3,15 @@ import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 
 export const getProducts = asyncHandler(async (req, res) => {
+  let { search } = req.query; //..products?search=apple
+  if (!search) {
+    search = "";
+  }
   const products = await Product.find({
-    //relate the product to the user who created it
-    /*user: req.user.id,*/
+    name: {
+      $regex: search,
+      $options: "i", //case insensitive
+    },
   });
   return res.status(200).send(products);
 });
@@ -33,7 +39,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     // user: req.user.id,
     name: req.body.name,
     category: req.body.category,
-    price: req.body.price, 
+    price: req.body.price,
     rating: req.body.rating,
     desc: req.body.desc,
     quantity: req.body.quantity,
@@ -50,7 +56,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Product not found");
   }
-/*
+  /*
   const user = await User.findById(req.user.id);
 
   if(!user) { 
@@ -108,7 +114,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   );
 });
 
-export const  deleteAllProducts = asyncHandler(async (req, res) => {
+export const deleteAllProducts = asyncHandler(async (req, res) => {
   await Product.deleteMany({});
-  return res.status(200).json({message: "All products removed"});
+  return res.status(200).json({ message: "All products removed" });
 });
