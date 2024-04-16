@@ -3,15 +3,19 @@ import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 
 export const getProducts = asyncHandler(async (req, res) => {
-  let { search } = req.query; //..products?search=apple
+  let { search, category } = req.query; //..products?search=apple
   if (!search) {
     search = "";
   }
+
   const products = await Product.find({
     name: {
       $regex: search,
       $options: "i", //case insensitive
     },
+    // category: category,
+    // ...category,
+    ...(category && { category: category }),
   });
   return res.status(200).send(products);
 });
