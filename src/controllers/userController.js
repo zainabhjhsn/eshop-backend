@@ -68,13 +68,22 @@ export const loginUser = asyncHandler(async (req, res) => {
 //Get user data
 // /api/users/me
 export const getMe = asyncHandler(async (req, res) => {
-  const { _id, name, email } = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select("-password");
+  // const { _id, name, email } = await User.findById(req.user._id);
 
-  res.status(200).json({
-    _id,
-    name,
-    email,
-  });
+  // res.status(200).json({
+  //   _id,
+  //   name,
+  //   email,
+  // });
+
+
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  res.json(user);
 
 });
 
