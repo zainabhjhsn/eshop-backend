@@ -28,6 +28,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password: hashedPassword,
+    avatar: req.file.filename,
   });
 
   if (user) {
@@ -35,6 +36,8 @@ export const registerUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
+      avatar: user.avatar,
       token: generateToken(user._id),
     });
   } else {
@@ -77,14 +80,11 @@ export const getMe = asyncHandler(async (req, res) => {
   //   email,
   // });
 
-
-
   if (!user) {
     res.status(404);
     throw new Error("User not found");
   }
   res.json(user);
-
 });
 
 //Generate jwt token

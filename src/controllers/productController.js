@@ -1,9 +1,11 @@
 import Product from "../models/productModel.js";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
+import fs from "fs";
+import path from "path";
 
 export const getProducts = asyncHandler(async (req, res) => {
-  let { search, category } = req.query; //..products?search=apple
+  let { search, category, price } = req.query; //..products?search=apple
   if (!search) {
     search = "";
   }
@@ -16,6 +18,8 @@ export const getProducts = asyncHandler(async (req, res) => {
     // category: category,
     // ...category,
     ...(category && { category: category }),
+    ...(price && { price: { $lte: price } }),
+    ...(price && { price: { $gte: price } }),
   });
   return res.status(200).send(products);
 });
@@ -109,6 +113,17 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error("User is not authorized to delete this product");
   }
 */
+
+  //delete image also from uploads folder
+  const image = product.image;
+  // const imagePath = path.join(__dirname, `../uploads/products/${image}`);
+  const imagePath = `src/uploads/products/${image}`;
+  fs.unlink(imagePath, (err) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
   await Product.findByIdAndDelete(req.params.id);
   //   await product.remove();
 
@@ -119,6 +134,18 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 });
 
 export const deleteAllProducts = asyncHandler(async (req, res) => {
+  //remove all images
+  const products = await Product.find({});
+  products.forEach((product) => {
+    const image = product.image;
+    const imagePath = `src/uploads/products/${image}`;
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+    });
+  });
   await Product.deleteMany({});
   return res.status(200).json({ message: "All products removed" });
 });
