@@ -1,5 +1,5 @@
 import express from "express";
-import { getMe, loginUser, registerUser } from "../controllers/userController.js";
+import { getMe, loginUser, registerUser, updateAvatar } from "../controllers/userController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import multer from "multer";
 
@@ -18,6 +18,7 @@ const router = express.Router();
 router.post("/", upload.single("avatar"), registerUser);
 router.post("/login", loginUser);
 router.get("/me", protect, getMe);
+router.put("/updateAvatar", protect, upload.single("avatar"), updateAvatar);
 
 
 export default router;

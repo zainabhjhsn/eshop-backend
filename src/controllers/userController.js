@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
+import fs from "fs";
+import path from "path";
 
 //Register a new user
 // /api/users
@@ -93,3 +95,25 @@ const generateToken = (id) => {
     expiresIn: "30d",
   });
 };
+
+export const updateAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    const imagePath = `src/uploads/users/${user.avatar}`;
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+    });
+    user.avatar = req.file.filename;
+    await user.save();
+    res.json(user.avatar);
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.json("Avatar updated");
+});
