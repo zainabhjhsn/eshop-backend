@@ -5,14 +5,19 @@ import fs from "fs";
 import path from "path";
 
 export const getProducts = asyncHandler(async (req, res) => {
-  let { search, category, price } = req.query; //..products?category=Accessories&price=0-500
+  let { search, category, price, page, limit } = req.query; //..products?category=Accessories&price=0-500
+  if (!page) {
+    page = 0;
+  }
+  if (!limit) {
+    limit = 10;
+  }
   if (!search) {
     search = "";
   }
 
   const minPrice = price ? price.split("-")[0] : 0;
   const maxPrice = price ? price.split("-")[1] : 0;
-    
 
   const products = await Product.find({
     name: {
@@ -25,8 +30,11 @@ export const getProducts = asyncHandler(async (req, res) => {
     // ...(price && { price: { $lte: price } }),
     // ...(price && { price: { $gte: price } }),
     // ...(price && { price: price }),
-    ...(price && { price: { $lte: maxPrice, $gte: minPrice} }),
-  });
+    ...(price && { price: { $lte: maxPrice, $gte: minPrice } }),
+  })
+    .skip(parseInt(page) * parseInt(limit)) //limit=2 page=1, skip 2
+    .limit(parseInt(limit))
+    .sort({ createdAt: -1 }); //sort by latest
   return res.status(200).send(products);
 });
 
