@@ -117,3 +117,32 @@ export const updateAvatar = asyncHandler(async (req, res) => {
 
   res.json("Avatar updated");
 });
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  // the id is in req.user._id because we are using the protect middleware
+  const user = await User.findById(req.user._id);
+  const { name, oldPassword, newPassword } = req.body;
+
+  if (user) {
+    if (oldPassword && newPassword) {
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        res.status(400);
+        throw new Error("Invalid password");
+      }
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+    // console.log(oldPassword, user.password);
+
+    //here we are updating the user
+    if (name)
+      user.name = name;
+    await user.save();
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+});

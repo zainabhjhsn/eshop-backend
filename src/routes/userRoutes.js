@@ -1,5 +1,5 @@
 import express from "express";
-import { getMe, loginUser, registerUser, updateAvatar } from "../controllers/userController.js";
+import { getMe, loginUser, registerUser, updateAvatar, updateProfile } from "../controllers/userController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import multer from "multer";
 
@@ -19,6 +19,7 @@ router.post("/", upload.single("avatar"), registerUser);
 router.post("/login", loginUser);
 router.get("/me", protect, getMe);
 router.put("/updateAvatar", protect, upload.single("avatar"), updateAvatar);
+router.put("/updateProfile", protect, updateProfile);
 
 
 export default router;
