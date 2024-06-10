@@ -8,7 +8,7 @@ import path from "path";
 //Register a new user
 // /api/users
 export const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   if (!name || !email || !password) {
     res.status(400);
@@ -31,6 +31,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     email,
     password: hashedPassword,
     avatar: req.file.filename,
+    role,
   });
 
   if (user) {
@@ -96,6 +97,11 @@ const generateToken = (id) => {
   });
 };
 
+export const getUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({}).select("-password");
+  return res.json(users);
+});
+
 export const updateAvatar = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -118,6 +124,31 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   res.json("Avatar updated");
 });
 
+export const updateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (user) {
+    const { name, email, role } = req.body;
+    const imagePath = `src/uploads/users/${user.avatar}`;
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+    });
+    user.avatar = req.file.filename;
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.role = role || user.role;
+
+    await user.save();
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
 export const updateProfile = asyncHandler(async (req, res) => {
   // the id is in req.user._id because we are using the protect middleware
   const user = await User.findById(req.user._id);
@@ -136,13 +167,33 @@ export const updateProfile = asyncHandler(async (req, res) => {
     // console.log(oldPassword, user.password);
 
     //here we are updating the user
-    if (name)
-      user.name = name;
+    if (name) user.name = name;
     await user.save();
     res.json(user);
   } else {
     res.status(404);
     throw new Error("User not found");
   }
+});
 
+export const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (user) {
+    const imagePath = `src/uploads/users/${user.avatar}`;
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+    });
+    await User.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      message: "User deleted successfully",
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
 });

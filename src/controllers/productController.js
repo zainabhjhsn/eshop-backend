@@ -18,7 +18,7 @@ export const getProducts = asyncHandler(async (req, res) => {
 
   const minPrice = price ? price.split("-")[0] : 0;
   const maxPrice = price ? price.split("-")[1] : 0;
-
+  const count = await Product.countDocuments();
   const products = await Product.find({
     name: {
       $regex: search,
@@ -35,7 +35,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     .skip(parseInt(page) * parseInt(limit)) //limit=2 page=1, skip 2
     .limit(parseInt(limit))
     .sort({ createdAt: -1 }); //sort by latest
-  return res.status(200).send(products);
+  return res.status(200).send({ products, count });
 });
 
 export const getProductById = asyncHandler(async (req, res) => {
@@ -65,7 +65,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     rating: req.body.rating,
     desc: req.body.desc,
     quantity: req.body.quantity,
-    image: req.file.filename,
+    image: req.file ? req.file.filename : null,
   });
 
   return res.status(200).json(product);
@@ -95,12 +95,28 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   const updatedProduct = await Product.findByIdAndUpdate(
     req.params.id,
-    req.body,
+    {
+      ...req.body,
+      image: req.file ? req.file.filename : product.image,
+    },
     {
       new: true,
       // runValidators: true
     }
   );
+
+  //delete image if new image is uploaded
+  if (req.file) {
+    const image = product.image;
+    // const imagePath = path.join(__dirname, `../uploads/products/${image}`);
+    const imagePath = `src/uploads/products/${image}`;
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+    });
+  }
 
   return res.status(200).json(updatedProduct);
 });

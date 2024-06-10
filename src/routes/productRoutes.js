@@ -22,7 +22,7 @@ const router = express.Router();
 router
   .route("/:id")
   .get(getProductById)
-  .put(adminProtect, updateProduct)
+  .put(adminProtect, upload.single("image"), updateProduct)
   .delete(adminProtect, deleteProduct);
 router
   .route("/")

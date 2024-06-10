@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Please enter your password"],
+      // required: [true, "Please enter your password"],
     },
     role: {
       type: String,
@@ -22,8 +22,7 @@ const userSchema = mongoose.Schema(
     },
     avatar: {
       type: String,
-      // default:"https://default.png",
-      required: false,
+      // required: false,
     },
   },
   {
