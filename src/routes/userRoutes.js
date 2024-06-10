@@ -14,7 +14,6 @@ const storage = multer.diskStorage({
 
 const router = express.Router();
 
-
 //Register a new user
 router.post("/", upload.single("avatar"), registerUser);
 router.post("/login", loginUser);
