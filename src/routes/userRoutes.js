@@ -14,13 +14,10 @@ const storage = multer.diskStorage({
 
 const router = express.Router();
 
-//Register a new user
 router.post("/", upload.single("avatar"), registerUser);
 router.post("/login", loginUser);
 router.get("/me", protect, getMe);
 router.get("/", getUsers);
-// router.put("/updateAvatar", protect, upload.single("avatar"), updateAvatar);
-// router.put("/updateProfile", protect, updateProfile);
 router.put("/:id", adminProtect, upload.single("avatar"), updateUser)
 router.delete("/:id", adminProtect, deleteUser);
 
