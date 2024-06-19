@@ -22,4 +22,5 @@ router.put("/:id", adminProtect, upload.single("avatar"), updateUser)
 router.delete("/:id", adminProtect, deleteUser);
 
 
+
 export default router;

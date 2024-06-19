@@ -4,6 +4,7 @@ import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import fs from "fs";
 import path from "path";
+import Product from "../models/productModel.js";
 
 //Register a new user
 // /api/users
@@ -197,3 +198,5 @@ export const deleteUser = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 });
+
+

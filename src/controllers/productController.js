@@ -19,6 +19,7 @@ export const getProducts = asyncHandler(async (req, res) => {
   const minPrice = price ? price.split("-")[0] : 0;
   const maxPrice = price ? price.split("-")[1] : 0;
   const count = await Product.countDocuments();
+
   const products = await Product.find({
     name: {
       $regex: search,
@@ -32,7 +33,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     // ...(price && { price: price }),
     ...(price && { price: { $lte: maxPrice, $gte: minPrice } }),
   })
-    .skip(parseInt(page) * parseInt(limit)) //limit=2 page=1, skip 2
+    .skip(parseInt(page) * parseInt(limit)) //limit=2 page=1, skip 2 =>
     .limit(parseInt(limit))
     .sort({ createdAt: -1 }); //sort by latest
   return res.status(200).send({ products, count });
@@ -178,4 +179,44 @@ export const deleteAllProducts = asyncHandler(async (req, res) => {
   });
   await Product.deleteMany({});
   return res.status(200).json({ message: "All products removed" });
+});
+
+export const addToCart = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  //check if user is logged in
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  const item = {
+    productId: product._id,
+    quantity: 1,
+  };
+
+  //check if product is already in cart
+  const productInCart = user.cart.items.find(
+    (item) => item.productId.toString() === req.params.id
+  );
+
+  if (productInCart) {
+    productInCart.quantity += 1;
+  } else {
+    user.cart.items.push(item);
+  }
+
+  if(user.cart.totalPrice === undefined) {
+    user.cart.totalPrice = 0;
+  }
+  user.cart.totalPrice += product.price;
+
+  await user.save();
+  return res.status(200).json(user.cart);
+
 });
