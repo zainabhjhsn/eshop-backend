@@ -74,15 +74,26 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 //Get user data
 // /api/users/me
-export const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password");
-  // const { _id, name, email } = await User.findById(req.user._id);
-
-  // res.status(200).json({
-  //   _id,
-  //   name,
-  //   email,
-  // });
+export const getInfo = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id)
+    .populate([
+      {
+        path: "cart",
+        populate: {
+          path: "items",
+          populate: {
+            path: "productId",
+            model: "Product",
+          },
+        },
+      },
+      {
+        path: "favorites",
+        model: "Product",
+        select: "-rating",
+      },
+    ])
+    .select("-password");
 
   if (!user) {
     res.status(404);
@@ -198,5 +209,3 @@ export const deleteUser = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 });
-
-

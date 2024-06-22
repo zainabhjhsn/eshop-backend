@@ -40,6 +40,12 @@ const userSchema = mongoose.Schema(
       ],
       totalPrice: Number,
     },
+    favorites: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   {
     timestamps: true,

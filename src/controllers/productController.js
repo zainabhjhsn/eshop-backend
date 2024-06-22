@@ -181,8 +181,11 @@ export const deleteAllProducts = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "All products removed" });
 });
 
+
+//Cart
 export const addToCart = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
+  const quantity = req.body.quantity;
   if (!product) {
     res.status(404);
     throw new Error("Product not found");
@@ -197,7 +200,7 @@ export const addToCart = asyncHandler(async (req, res) => {
 
   const item = {
     productId: product._id,
-    quantity: 1,
+    quantity: quantity || 1,
   };
 
   //check if product is already in cart
@@ -206,7 +209,7 @@ export const addToCart = asyncHandler(async (req, res) => {
   );
 
   if (productInCart) {
-    productInCart.quantity += 1;
+    productInCart.quantity += quantity || 1;
   } else {
     user.cart.items.push(item);
   }
@@ -219,4 +222,81 @@ export const addToCart = asyncHandler(async (req, res) => {
   await user.save();
   return res.status(200).json(user.cart);
 
+});
+
+export const removeFromCart = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  //check if user is logged in
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  const productInCart = user.cart.items.find(
+    (item) => item.productId.toString() === req.params.id
+  );
+
+  if (productInCart) {
+    user.cart.totalPrice -= product.price * productInCart.quantity;
+    user.cart.items = user.cart.items.filter(
+      (item) => item.productId.toString() !== req.params.id
+    );
+  }
+
+  await user.save();
+  return res.status(200).json(user.cart);
+});
+
+export const addToFavorites = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  //check if user is logged in
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  const productInFav = user.favorites.find(
+    (item) => item.toString() === req.params.id
+  );
+
+  if (!productInFav) {
+    user.favorites.push(req.params.id);
+  }
+
+  await user.save();
+  return res.status(200).json(user.favorites);
+});
+
+export const removeFromFavorites = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  //check if user is logged in
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  user.favorites = user.favorites.filter(
+    (item) => item.toString() !== req.params.id
+  );
+
+  await user.save();
+  return res.status(200).json(user.favorites);
 });
