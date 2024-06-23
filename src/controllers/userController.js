@@ -140,15 +140,64 @@ export const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (user) {
-    const { name, email, role } = req.body;
+    const { name, email, role, oldPassword, newPassword } = req.body;
     const imagePath = `src/uploads/users/${user.avatar}`;
-    fs.unlink(imagePath, (err) => {
-      if (err) {
-        console.error(err);
-        return;
+    if (req.file) {
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+      });
+      user.avatar = req.file?.filename;
+    }
+
+    if (oldPassword && newPassword) {
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        res.status(400);
+        throw new Error("Invalid password");
       }
-    });
-    user.avatar = req.file.filename;
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.role = role || user.role;
+
+    await user.save();
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+export const updateMyProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    const { name, email, role, oldPassword, newPassword } = req.body;
+    const imagePath = `src/uploads/users/${user.avatar}`;
+    if (req.file) {
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+      });
+      user.avatar = req.file?.filename;
+    }
+
+    if (oldPassword && newPassword) {
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        res.status(400);
+        throw new Error("Invalid password");
+      }
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
     user.name = name || user.name;
     user.email = email || user.email;
     user.role = role || user.role;

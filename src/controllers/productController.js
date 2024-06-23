@@ -214,11 +214,6 @@ export const addToCart = asyncHandler(async (req, res) => {
     user.cart.items.push(item);
   }
 
-  if(user.cart.totalPrice === undefined) {
-    user.cart.totalPrice = 0;
-  }
-  user.cart.totalPrice += product.price;
-
   await user.save();
   return res.status(200).json(user.cart);
 
@@ -243,7 +238,6 @@ export const removeFromCart = asyncHandler(async (req, res) => {
   );
 
   if (productInCart) {
-    user.cart.totalPrice -= product.price * productInCart.quantity;
     user.cart.items = user.cart.items.filter(
       (item) => item.productId.toString() !== req.params.id
     );

@@ -38,7 +38,6 @@ const userSchema = mongoose.Schema(
           },
         },
       ],
-      totalPrice: Number,
     },
     favorites: [
       {
